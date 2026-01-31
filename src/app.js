@@ -2,6 +2,27 @@ const express=require('express');
 
 const app=express();
 
+const {adminAuth,userAuth}=require('./middleware/auth'); 
+app.use("/admin",adminAuth);
+app.use("/user",userAuth);
+
+
+app.get("/user",userAuth,(req,res)=>{
+    res.send('User Information Sent');
+});
+
+app.get("/admin/getAllData",(req,res)=>{
+    res.send('All Data Sent');
+});
+
+
+
+app.get("/admin/deleteUser",(req,res)=>{
+    res.send('Deleted a User');
+});
+
+
+
 // app.use("/test",(req,res)=>{
 //     res.send('Hello From Test Route');
 // });
@@ -24,29 +45,29 @@ const app=express();
 //     res.send('Delete route');
 // });
 
-app.get("/user",(req,res,next)=>{
-    console.log('User route accessed');
-    next();
-},
-(req,res,next)=>{
-    console.log('This is the second middleware');
-    // res.send('User Information 2');
-    next();
-},
-(req,res,next)=>{
-    console.log('This is the third middleware');
-    next();
-},
-(req,res,next)=>{
-    console.log('This is the fourth middleware');
-    next();
-},
-(req,res,next)=>{
-    console.log('This is the fifth middleware');
-    // next();
-    res.send('User Information Final');
+// app.get("/user",(req,res,next)=>{
+//     console.log('User route accessed');
+//     next();
+// },
+// (req,res,next)=>{
+//     console.log('This is the second middleware');
+//     // res.send('User Information 2');
+//     next();
+// },
+// (req,res,next)=>{
+//     console.log('This is the third middleware');
+//     next();
+// },
+// (req,res,next)=>{
+//     console.log('This is the fourth middleware');
+//     next();
+// },
+// (req,res,next)=>{
+//     console.log('This is the fifth middleware');
+//     // next();
+//     res.send('User Information Final');
     
-});
+// });
 
 
 
