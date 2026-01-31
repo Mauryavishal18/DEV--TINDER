@@ -2,24 +2,24 @@ const express=require('express');
 
 const app=express();
 
-const {adminAuth,userAuth}=require('./middleware/auth'); 
-app.use("/admin",adminAuth);
-app.use("/user",userAuth);
+// const {adminAuth,userAuth}=require('./middleware/auth'); 
+// app.use("/admin",adminAuth);
+// app.use("/user",userAuth);
 
 
-app.get("/user",userAuth,(req,res)=>{
-    res.send('User Information Sent');
-});
+// app.get("/user",userAuth,(req,res)=>{
+//     res.send('User Information Sent');
+// });
 
-app.get("/admin/getAllData",(req,res)=>{
-    res.send('All Data Sent');
-});
+// app.get("/admin/getAllData",(req,res)=>{
+//     res.send('All Data Sent');
+// });
 
 
 
-app.get("/admin/deleteUser",(req,res)=>{
-    res.send('Deleted a User');
-});
+// app.get("/admin/deleteUser",(req,res)=>{
+//     res.send('Deleted a User');
+// });
 
 
 
@@ -69,6 +69,21 @@ app.get("/admin/deleteUser",(req,res)=>{
     
 // });
 
+app.get("/getUserData",(req,res)=>{
+    try{
+    throw new Error('Simulated Server Error');
+    res.send('User Data Sent');
+}
+catch(err){
+    res.status(500).send('Something went Wrong! ');
+
+}
+});
+app.use("/",(err,req,res,next)=>{
+    if(err){
+        res.status(500).send('Something went Wrong! ');
+    }
+});
 
 
 
