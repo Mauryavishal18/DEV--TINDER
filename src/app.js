@@ -5,15 +5,20 @@ const app=express();
 // const userSchema=require("./models/user");
 const User=require("./models/user");
 
+app.use(express.json());
 
-app.post("/signup",async (req,res)=>{
-    const user=new User({
-        firstName:"Rohit",
-        lastName:"Sharma",
-        emailId:"rohit.sharma@example.com",
-        age:37,
-        gender:"Male",
-    });
+app.post("/signup",async(req,res)=> {
+    const user=new User(req.body);
+
+
+// app.post("/signup",async (req,res)=>{
+//     const user=new User({
+//         firstName:"Rohit",
+//         lastName:"Sharma",
+//         emailId:"rohit.sharma@example.com",
+//         age:37,
+//         gender:"Male",
+//     });
     try{
     await user.save();
     res.send("User Added successfully!");
