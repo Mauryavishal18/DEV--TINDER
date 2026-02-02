@@ -1,6 +1,8 @@
 const express = require('express');
 const connectDB = require("./config/database");
 const app = express();
+require("dotenv").config();
+
 
 // const userSchema=require("./models/user");
 const User = require("./models/user");
