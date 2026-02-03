@@ -11,7 +11,7 @@ const { ReturnDocument } = require('mongodb');
 app.use(express.json());
 
 /* ---------- SIGNUP API ---------- */
-app.post("/signup", async (req, res) => {
+app.post("/user", async (req, res) => {
     try {
         const user = new User(req.body);
         await user.save();
