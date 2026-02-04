@@ -1,25 +1,40 @@
 const express = require('express');
 const connectDB = require("./config/database");
 const app = express();
+const bcrypt=require("bcrypt");
+
 require("dotenv").config();
 
-
-// const userSchema=require("./models/user");
 const User = require("./models/user");
 const { ReturnDocument } = require('mongodb');
+const { validateSignUpData } = require('./utils/validation');
 
 app.use(express.json());
 
 /* ---------- SIGNUP API ---------- */
-app.post("/user", async (req, res) => {
-    try {
-        const user = new User(req.body);
-        await user.save();
-        res.send("User Added successfully!");
-    } catch (err) {
-        res.status(400).send("Error signing up user: " + err.message);
-    }
+app.post("/signup", async (req, res) => {
+  try {
+    validateSignUpData(req);
+
+    const { firstName, lastName, emailId, password, age } = req.body;
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+      age,
+    });
+
+    await user.save();
+    res.send("User Added successfully!");
+  } catch (err) {
+    res.status(400).send("Error signing up user: " + err.message);
+  }
 });
+
 
 /* ---------- GET USER API ---------- */
 app.get("/user", async (req, res) => {
