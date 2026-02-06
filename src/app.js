@@ -47,6 +47,9 @@ app.post("/login",async(req,res)=>{
         const isPasswordValid=await bcrypt.compare(password,user.password);
 
         if(isPasswordValid){
+
+            const token=await isJWT.sign{_id:user._id}
+            res.cookie("token")
             res.send("Login Successful");
         }else{
             throw new Error("Invalid credential");
@@ -58,6 +61,8 @@ app.post("/login",async(req,res)=>{
 
     }
 });
+
+
 
 
 /* ---------- GET USER API ---------- */
