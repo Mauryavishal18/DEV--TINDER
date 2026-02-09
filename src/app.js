@@ -2,6 +2,8 @@ const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
 
+const authRouter=require("../src/routes/auth");
+
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");

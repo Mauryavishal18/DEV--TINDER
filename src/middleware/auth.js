@@ -27,3 +27,7 @@ const userAuth = async (req, res, next) => {
 };
 
 module.exports = { userAuth };
+
+
+
+//create a nodejs file name InputDeviceInfo.js and another file output.txt and copy content  from input to file to output file
