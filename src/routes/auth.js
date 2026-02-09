@@ -1,29 +1,64 @@
-const express=require("express");
+const express = require("express");
+const authRouter = express.Router();
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
-const authRouter=express.Router();
-const bcrypt=require("bcrypt");
+const User = require("../models/user");
+const { validateSignUpData } = require("../utils/validation");
 
+/* ---------- SIGNUP ---------- */
+authRouter.post("/signup", async (req, res) => {
+  try {
+    validateSignUpData(req);
 
-const{validateSignUpData}=require("../utils/validation");
+    const { firstName, lastName, emailId, password, age } = req.body;
 
-authRouter.post("/signup",async (req,res)=>{
-    
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+      age,
     });
 
-
-
-authRouter.post("/login",async(req,res)=>{
-
+    await user.save();
+    res.send("User Added Successfully");
+  } catch (err) {
+    res.status(400).send("ERROR: " + err.message);
+  }
 });
 
+/* ---------- LOGIN ---------- */
+authRouter.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
 
+    const user = await User.findOne({ emailId }).select("+password");
 
- authRouter.post("/logout", async(req,res)=>{
-    res.cookie("token",null,{
-        expires:new Date(Date.now()),
+    if (!user) throw new Error("Invalid credentials");
 
- });
- res.send("Logout Successful !!");
+    const isPasswordValid = await user.validatePassword(password);
+    if (!isPasswordValid) throw new Error("Invalid credentials");
+
+    const token = jwt.sign(
+      { _id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("token", token, { httpOnly: true });
+    res.send("Login Successful");
+  } catch (err) {
+    res.status(400).send("ERROR: " + err.message);
+  }
 });
 
-module.exports=authRouter;
+/* ---------- LOGOUT ---------- */
+authRouter.post("/logout", (req, res) => {
+  res.cookie("token", null, { expires: new Date(0) });
+  res.send("Logout Successful");
+});
+
+module.exports = authRouter;

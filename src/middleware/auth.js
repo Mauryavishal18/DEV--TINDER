@@ -3,31 +3,26 @@ const User = require("../models/user");
 
 const userAuth = async (req, res, next) => {
   try {
-    const { token } = req.cookies;
+    const token = req.cookies?.token;
 
     if (!token) {
-      throw new Error("Token missing");
+      return res.status(401).send("Unauthorized: Please login");
     }
 
-    const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const { _id } = decodedObj;
-    const user = await User.findById(_id);
+    const user = await User.findById(decoded._id);
 
     if (!user) {
-      throw new Error("User not found");
+      return res.status(401).send("Unauthorized: User not found");
     }
 
     req.user = user;
     next();
 
   } catch (err) {
-    res.status(401).send("ERROR: " + err.message);
+    return res.status(401).send("Unauthorized: " + err.message);
   }
 };
 
 module.exports = { userAuth };
-
-
-
-//create a nodejs file name InputDeviceInfo.js and another file output.txt and copy content  from input to file to output file

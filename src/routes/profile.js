@@ -1,32 +1,36 @@
-const profileRouter= express.Router();
+const express = require("express");
+const profileRouter = express.Router();
+const { userAuth } = require("../middleware/auth");
 
-const{ userAuth}=require("../middleware/auth");
-
-const{validateEditProfileData}=require("..utils/validation");
-
-profileRouter.get("/profile/view",userAuth ,async(req,res)=>{
-    try{
-        const user=req.user;
-        res.send(user);
-    }catch(err){
-        res.status(400).send("ERROR :" + err.message);
-    }
+/* ---------- VIEW PROFILE ---------- */
+profileRouter.get("/profile/view", userAuth, async (req, res) => {
+  res.send(req.user);
 });
 
-profileRouter.patch("/profile/edit",userAuth, async(req,res)=>{
-    try{
-        if(!validateEditProfileData(req)){
-            throw new Error("Invalid Edit Request");
-        }
+/* ---------- EDIT PROFILE ---------- */
+profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
+  try {
+    const ALLOWED_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
 
-        const loggedInUser=req.user;
-       Object.keys(req.body).forEach(key)=>(loggedInUser[key]=req.body[key]));
+    const isAllowed = Object.keys(req.body).every(key =>
+      ALLOWED_UPDATES.includes(key)
+    );
 
-      await loggedInUser.save();
-       res.send(`${loggedInUser.firstName}, Your Profile updated Successfully`);
-    }catch(err){
-        res.status(400).send("ERROR:" + err.message);
-    }
+    if (!isAllowed) throw new Error("Invalid Edit request");
+
+    Object.keys(req.body).forEach(key => {
+      req.user[key] = req.body[key];
+    });
+
+    await req.user.save();
+
+    res.json({
+      message: `${req.user.firstName}, your profile updated successfully`,
+      data: req.user,
+    });
+  } catch (err) {
+    res.status(400).send("ERROR: " + err.message);
+  }
 });
 
-module.exports=profileRouter;
+module.exports = profileRouter;

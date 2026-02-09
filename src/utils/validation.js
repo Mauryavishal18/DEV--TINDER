@@ -3,30 +3,29 @@ const validator = require("validator");
 const validateSignUpData = (req) => {
   const { firstName, lastName, emailId, password } = req.body;
 
-  if (!firstName || firstName.length < 5) {
-    throw new Error("First name is not valid");
+  // First Name
+  if (!firstName || typeof firstName !== "string" || firstName.trim().length < 5) {
+    throw new Error("First name must be at least 5 characters long");
   }
 
-  if (lastName && lastName.length < 3) {
-    throw new Error("Last name is not valid");
+  // Last Name (optional)
+  if (lastName && lastName.trim().length < 3) {
+    throw new Error("Last name must be at least 3 characters long");
   }
 
-  if (!validator.isEmail(emailId)) {
+  // Email
+  if (!emailId || !validator.isEmail(emailId)) {
     throw new Error("Invalid email address");
   }
 
-  if (!validator.isStrongPassword(password)) {
-    throw new Error("Password is not strong");
+  // Password
+  if (!password || !validator.isStrongPassword(password)) {
+    throw new Error(
+      "Password must contain uppercase, lowercase, number and special character"
+    );
   }
-};
-const validateEditProfileData=(req)=>{
-  const allowedEditFields=["firstName" ," lastName", "emailId","photoUrl","gender","age","about","skills"];
 
-  const isEditAllowed=Object.keys(req.body).every(field=>allowedEditFields,includes(field));
-
-  return true;
+  return true; // ✅ important for future extensibility
 };
 
-
-
-module.exports = { validateSignUpData ,validateEditProfileData};
+module.exports = { validateSignUpData };
