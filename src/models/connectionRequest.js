@@ -1,28 +1,46 @@
-const mongoose=require("mongoose");
+const mongoose = require("mongoose");
 
-const connectionRequestSchema=new mongoose.Schema({
+const connectionRequestSchema = new mongoose.Schema(
+  {
+    fromUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
+    },
 
-    fromUserId:{
-        type:mongoose.Schema.Types.ObjectId,
-        require:true,
+    toUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
     },
-    toUserId:{
-        type:mongoose.Schema.Types.ObjectId,
-        required:true,
+
+    status: {
+      type: String,
+      required: true,
+      enum: {
+        values: ["ignore", "interested", "accepted", "rejected"],
+        message: `{VALUE} is incorrect status type`,
+      },
     },
-    status:{
-        type:String,
-        required:true,
-        enum:{
-            values:["ignore","interested","accepted","rejected"],
-            message:`{VALUE} is incorrect status type`,
-        },
-    },
-},
-{timestamps:true}
+  },
+  { timestamps: true }
 );
 
-const connectionRequestModel=new mongoose.model("ConnectionRequest",connectionRequestSchema);
+/* ---------- PRE MIDDLEWARE (SELF REQUEST PREVENT) ---------- */
+connectionRequestSchema.pre("save", function (next) {
+  if (this.fromUserId.equals(this.toUserId)) {
+    throw new Error("You cannot send request to yourself");
+  }
+  next();
+});
 
+/* ---------- COMPOUND INDEX (DUPLICATE PREVENT) ---------- */
+connectionRequestSchema.index(
+  { fromUserId: 1, toUserId: 1 },
+  { unique: true }
+);
 
-module.exports=connectionRequestSchema;
+module.exports = mongoose.model(
+  "ConnectionRequest",
+  connectionRequestSchema
+);
