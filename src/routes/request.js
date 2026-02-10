@@ -4,7 +4,7 @@ const { userAuth } = require("../middleware/auth");
 
 /* ---------- SEND INTEREST ---------- */
 requestRouter.post(
-  "/request/send/interested/:userId",
+  "/request/send/interested/:toUserId",
   userAuth,
   async (req, res) => {
     res.send(req.user.firstName + " sent connection request");
