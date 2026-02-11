@@ -1,11 +1,13 @@
 const express = require("express");
-const requestRouter = express.Router();
 const mongoose = require("mongoose");
+const requestRouter = express.Router();
 
 const { userAuth } = require("../middleware/auth");
 const ConnectionRequest = require("../models/connectionRequest");
 
-/* ---------- SEND REQUEST (IGNORE / INTERESTED) ---------- */
+/* =======================================================
+   SEND REQUEST (ignore / interested)
+======================================================= */
 requestRouter.post(
   "/request/send/:status/:toUserId",
   userAuth,
@@ -14,18 +16,15 @@ requestRouter.post(
       const fromUserId = req.user._id;
       const { status, toUserId } = req.params;
 
-      /* STATUS CHECK */
       const allowedStatus = ["ignore", "interested"];
       if (!allowedStatus.includes(status)) {
-        throw new Error("Invalid status type");
+        return res.status(400).json({ message: "Invalid status type" });
       }
 
-      /* USER ID CHECK */
       if (!mongoose.Types.ObjectId.isValid(toUserId)) {
-        throw new Error("Invalid user id");
+        return res.status(400).json({ message: "Invalid user id" });
       }
 
-      /* DUPLICATE CHECK (BOTH DIRECTIONS) */
       const existingRequest = await ConnectionRequest.findOne({
         $or: [
           { fromUserId, toUserId },
@@ -34,10 +33,11 @@ requestRouter.post(
       });
 
       if (existingRequest) {
-        throw new Error("Connection request already exists");
+        return res
+          .status(400)
+          .json({ message: "Connection request already exists" });
       }
 
-      /* CREATE REQUEST */
       const connectionRequest = new ConnectionRequest({
         fromUserId,
         toUserId,
@@ -46,7 +46,7 @@ requestRouter.post(
 
       await connectionRequest.save();
 
-      res.json({
+      res.status(200).json({
         message: "Connection request sent successfully",
         data: connectionRequest,
       });
@@ -56,21 +56,55 @@ requestRouter.post(
   }
 );
 
-/* ---------- ACCEPT REQUEST ---------- */
+/* =======================================================
+   REVIEW REQUEST (accepted / rejected)
+======================================================= */
 requestRouter.post(
-  "/request/review/accepted/:requestId",
+  "/request/review/:status/:requestId",
   userAuth,
   async (req, res) => {
-    res.send("Request accepted");
-  }
-);
+    try {
+      const loggedInUser = req.user;
+      const { status, requestId } = req.params;
 
-/* ---------- REJECT REQUEST ---------- */
-requestRouter.post(
-  "/request/review/rejected/:requestId",
-  userAuth,
-  async (req, res) => {
-    res.send("Request rejected");
+      const allowedStatuses = ["accepted", "rejected"];
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({
+          message: "Invalid Status or Status not allowed",
+          success: false,
+        });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(requestId)) {
+        return res.status(400).json({
+          message: "Invalid request id",
+        });
+      }
+
+      const connectionRequest = await ConnectionRequest.findOne({
+        _id: requestId,
+        toUserId: loggedInUser._id,
+        status: "interested",
+      });
+
+      if (!connectionRequest) {
+        return res.status(404).json({
+          message: "Request not found",
+          success: false,
+        });
+      }
+
+      connectionRequest.status = status;
+      const data = await connectionRequest.save();
+
+      res.status(200).json({
+        message: "Connection request " + status,
+        data,
+        success: true,
+      });
+    } catch (error) {
+      res.status(400).send("ERROR: " + error.message);
+    }
   }
 );
 
