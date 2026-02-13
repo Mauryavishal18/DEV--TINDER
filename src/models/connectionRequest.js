@@ -29,7 +29,7 @@ const connectionRequestSchema = new mongoose.Schema(
 /* ---------- PRE MIDDLEWARE (SELF REQUEST PREVENT) ---------- */
 connectionRequestSchema.pre("save", function (next) {
   if (this.fromUserId.equals(this.toUserId)) {
-    throw new Error("You cannot send request to yourself");
+    throw new Error("You cannot send request to yourself !!");
   }
   next();
 });
